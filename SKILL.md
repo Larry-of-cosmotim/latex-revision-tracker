@@ -260,7 +260,22 @@ Solution: Check .bib file, run bibtex, compile again
 # Generate visual diff between versions
 latexdiff manuscript_v1.tex manuscript_v2.tex > diff_v1_v2.tex
 pdflatex diff_v1_v2.tex
+bibtex diff_v1_v2    # if bibliography is used
+pdflatex diff_v1_v2.tex
+pdflatex diff_v1_v2.tex
 ```
+
+**Post-diff cleanup:** After the diff PDF is generated, remove all intermediate files to keep the workspace clean. Only the final PDF should remain.
+```bash
+# Clean up all auxiliary and intermediate files after diff PDF is ready
+rm -f diff_v1_v2.tex diff_v1_v2.aux diff_v1_v2.log diff_v1_v2.out \
+      diff_v1_v2.bbl diff_v1_v2.blg diff_v1_v2.toc diff_v1_v2.lof \
+      diff_v1_v2.lot diff_v1_v2.synctex.gz diff_v1_v2.fls \
+      diff_v1_v2.fdb_latexmk diff_v1_v2.nav diff_v1_v2.snm
+# Keep only: diff_v1_v2.pdf
+```
+
+**Rule:** Always clean up after generating a diff PDF. The diff `.tex` file is a throwaway — it's auto-generated and can be recreated anytime from the two source versions. Never keep it around to clutter the workspace.
 
 ### 2. Automated Quality Checks
 ```bash
