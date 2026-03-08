@@ -256,18 +256,40 @@ Solution: Check .bib file, run bibtex, compile again
 ## Advanced Features
 
 ### 1. Diff Tracking
+
+**CRITICAL:** Diff files inherit ALL citation dependencies from the source documents. You MUST run the full bibliography workflow — a single `pdflatex` pass will ALWAYS produce citation errors (`[?]` markers) in diff files. This is the most common mistake.
+
+**Full diff workflow (mandatory — no shortcuts):**
 ```bash
-# Generate visual diff between versions
+# Step 1: Generate the diff .tex
 latexdiff manuscript_v1.tex manuscript_v2.tex > diff_v1_v2.tex
-pdflatex diff_v1_v2.tex
-bibtex diff_v1_v2    # if bibliography is used
-pdflatex diff_v1_v2.tex
-pdflatex diff_v1_v2.tex
+
+# Step 2: Copy bibliography files to the same directory
+# The diff file needs access to the SAME .bib files and .bst style
+cp manuscript.bib .    # if not already present
+
+# Step 3: Full compilation (ALL steps required)
+pdflatex diff_v1_v2.tex      # First pass — generates .aux with citation keys
+bibtex diff_v1_v2            # Resolves citations from .bib file
+pdflatex diff_v1_v2.tex      # Second pass — incorporates bibliography
+pdflatex diff_v1_v2.tex      # Third pass — resolves all cross-references
 ```
 
-**Post-diff cleanup:** After the diff PDF is generated, remove all intermediate files to keep the workspace clean. Only the final PDF should remain.
+**Never do this:**
 ```bash
-# Clean up all auxiliary and intermediate files after diff PDF is ready
+# WRONG — will produce [?] for every citation
+pdflatex diff_v1_v2.tex   # single pass = broken citations
+```
+
+**Troubleshooting citation errors in diff files:**
+- `[?]` markers → you skipped `bibtex`. Run the full 4-step workflow above.
+- `I couldn't open file name.bib` → copy the `.bib` file to the diff directory.
+- `I couldn't open style file name.bst` → copy the `.bst` file too.
+- Still broken → check that `\bibliography{}` and `\bibliographystyle{}` paths are correct in the source `.tex` files before running `latexdiff`.
+
+**Post-diff cleanup:** After the diff PDF is verified, remove all intermediate files. Only the final PDF should remain.
+```bash
+# Clean up all auxiliary and intermediate files
 rm -f diff_v1_v2.tex diff_v1_v2.aux diff_v1_v2.log diff_v1_v2.out \
       diff_v1_v2.bbl diff_v1_v2.blg diff_v1_v2.toc diff_v1_v2.lof \
       diff_v1_v2.lot diff_v1_v2.synctex.gz diff_v1_v2.fls \
